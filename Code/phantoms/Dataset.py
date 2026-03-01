@@ -22,18 +22,18 @@ def generate_custom_data_set(quant_of_phantoms : int, x_path : str, y_path, proj
         img_uint8 = ((phantom - phantom.min()) /
                      (phantom.max() - phantom.min()) * 255).astype(np.uint8)
 
-        Image.fromarray(img_uint8).save(x_path + "/" + str(i) + ".png")
+        Image.fromarray(img_uint8).save(y_path + "/" + str(i) + ".png")
 
     
     ## Generating y
     
     for n_proj in projections:
-        os.makedirs(os.path.join(y_path, str(n_proj)), exist_ok=True)
+        os.makedirs(os.path.join(x_path, str(n_proj)), exist_ok=True)
 
-    image_files = [f for f in os.listdir(x_path) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.tif'))]
+    image_files = [f for f in os.listdir(y_path) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.tif'))]
 
     for img_name in image_files:
-        img_path = os.path.join(x_path, img_name)
+        img_path = os.path.join(y_path, img_name)
         print(f"Processando {img_name}...")
 
         image = imread(img_path)
@@ -54,7 +54,7 @@ def generate_custom_data_set(quant_of_phantoms : int, x_path : str, y_path, proj
 
             reconstruction_uint8 = (reconstruction * 255).astype(np.uint8)
 
-            out_path = os.path.join(y_path, str(n_proj), img_name)
+            out_path = os.path.join(x_path, str(n_proj), img_name)
             imsave(out_path, reconstruction_uint8)
 
 
@@ -77,6 +77,16 @@ def load_dataset_X_n_Y(x_path : str, y_path : str) -> tuple[np.ndarray, np.ndarr
 
     return np.array(X), np.array(Y)
 
+def load_full_dataset_X_n_Y(x_path : str, y_path : str, projections : list[int]) -> tuple[np.ndarray, np.ndarray]:
+    X_total = []
+    Y_total = []
+
+    for p in projections:
+        x, y = load_dataset_X_n_Y(x_path + f"/{p}", y_path)
+        X_total.append(x)
+        Y_total.append(y)
+
+    return np.concatenate(X_total, axis=0), np.concatenate(Y_total, axis=0)
 
 def generate_random_phantom(size : int = 256, num_ellipses : int = 10, seed : int | None = None) -> np.ndarray:
     """

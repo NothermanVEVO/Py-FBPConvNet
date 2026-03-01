@@ -64,7 +64,7 @@ def fbpconvnet_model(input_shape = (512, 512, 1)):
 
     x = expansive_path(x, skip1, skip2, skip3, skip4)
 
-    output = layers.Conv2D(1, 1, activation = 'linear')(x)
+    output = layers.Conv2D(1, 1, activation = 'sigmoid')(x)
 
     output = layers.Add()([output, input]) ## FINAL SKIP CONNECTION
 

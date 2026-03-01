@@ -15,13 +15,14 @@ def generate_custom_data_set(quant_of_phantoms : int, x_path : str, y_path, proj
     ## Generating x
     
     for i in range(quant_of_phantoms):
+        print(i)
 
         phantom = generate_random_phantom(size=512, num_ellipses=random.randrange(2, 14), seed=None)
 
         img_uint8 = ((phantom - phantom.min()) /
                      (phantom.max() - phantom.min()) * 255).astype(np.uint8)
 
-        Image.fromarray(img_uint8).save(x_path + str(i) + ".png")
+        Image.fromarray(img_uint8).save(x_path + "/" + str(i) + ".png")
 
     
     ## Generating y

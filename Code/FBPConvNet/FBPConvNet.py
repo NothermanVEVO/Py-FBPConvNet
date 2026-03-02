@@ -53,7 +53,7 @@ def expansive_path(input, skip1, skip2, skip3, skip4):
 
     return input
 
-def fbpconvnet_model(input_shape = (512, 512, 1)):
+def fbpconvnet_model(input_shape = (512, 512, 1)) -> models.Model:
     input = layers.Input(input_shape)
 
     x = conv_block(input, 64)

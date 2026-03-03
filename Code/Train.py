@@ -9,10 +9,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
-
+QUANT_OF_TRAIN_IMGS = 4
 X_TRAIN_PATH = "dataset/x_train"
 Y_TRAIN_PATH = "dataset/y_train"
 
+QUANT_OF_TEST_IMGS = 2
 X_TEST_PATH = "dataset/x_test"
 Y_TEST_PATH = "dataset/y_test"
 
@@ -36,12 +37,12 @@ def _generate_datasets() -> None:
     print("Generating TRAIN dataset...")
     os.makedirs(X_TRAIN_PATH, exist_ok=True)
     os.makedirs(Y_TRAIN_PATH, exist_ok=True)
-    Dataset.generate_custom_data_set(4, X_TRAIN_PATH, Y_TRAIN_PATH, PROJECTIONS)
+    Dataset.generate_custom_data_set(QUANT_OF_TRAIN_IMGS, X_TRAIN_PATH, Y_TRAIN_PATH, PROJECTIONS)
 
     print("Generating TEST dataset...")
     os.makedirs(X_TEST_PATH, exist_ok=True)
     os.makedirs(Y_TEST_PATH, exist_ok=True)
-    Dataset.generate_custom_data_set(2, X_TEST_PATH, Y_TEST_PATH, PROJECTIONS)
+    Dataset.generate_custom_data_set(QUANT_OF_TEST_IMGS, X_TEST_PATH, Y_TEST_PATH, PROJECTIONS)
 
 def _get_dataset() -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     print("Getting dataset...")

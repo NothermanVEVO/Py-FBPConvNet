@@ -50,7 +50,7 @@ def _train(generate_dataset: bool = False) -> None:
 
     start = time.time()
 
-    _fit(model, x_train, y_train, epochs=150, batch_size=4, validation_split=0.2)
+    _fit(model, x_train, y_train, epochs=1, batch_size=4, validation_split=0.2)
 
     end = time.time()
 
@@ -231,15 +231,15 @@ def _predict(model: models.Model, x_test: np.ndarray, y_test: np.ndarray) -> Non
         plt.figure(figsize=(12, 4))
 
         plt.subplot(1, 3, 1)
-        plt.imshow(x_test[i])
+        plt.imshow(x_test[i].squeeze(), cmap="gray", vmin=0, vmax=1)
         plt.title("Input")
 
         plt.subplot(1, 3, 2)
-        plt.imshow(y_test[i])
+        plt.imshow(y_test[i].squeeze(), cmap="gray", vmin=0, vmax=1)
         plt.title("Ground Truth")
 
         plt.subplot(1, 3, 3)
-        plt.imshow(pred[i])
+        plt.imshow(pred[i].squeeze(), cmap="gray", vmin=0, vmax=1)
         plt.title("Prediction")
 
         plt.savefig(f"imgs/model_prediction_{i}.png", dpi=300)
@@ -255,4 +255,4 @@ if __name__ == "__main__":
 
     logging.info("Starting training...")
 
-    _train(generate_dataset=True)
+    _train(generate_dataset=False)

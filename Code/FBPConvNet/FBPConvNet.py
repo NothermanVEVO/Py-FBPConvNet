@@ -68,5 +68,8 @@ def fbpconvnet_model(input_shape = (512, 512, 1)) -> models.Model:
 
     output = layers.Add()([output, input]) ## FINAL SKIP CONNECTION
 
+    # output = layers.Activation("sigmoid")(output) ## THIS ONE
+    # output = layers.Lambda(lambda x: tf.clip_by_value(x, 0.0, 1.0))(output) ## OR THIS ONE
+
     model = models.Model(input, output, name = 'FBPConvNet')
     return model

@@ -8,6 +8,12 @@ from keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
+import tensorflow as tf
+import logging
+import time
+
+from Utils.Loggers import Logger
+
 
 QUANT_OF_TRAIN_IMGS = 4
 X_TRAIN_PATH = "dataset/x_train"
@@ -17,81 +23,132 @@ QUANT_OF_TEST_IMGS = 2
 X_TEST_PATH = "dataset/x_test"
 Y_TEST_PATH = "dataset/y_test"
 
-PROJECTIONS = [15, 30, 45, 60, 90, 120, 150, 180]
+PROJECTIONS = [15]
 
 
-def _train(generate_dataset : bool = False) -> None:
+def _train(generate_dataset: bool = False) -> None:
+
+    logging.info("Creating model...")
+
     model = FBPConvNet.fbpconvnet_model()
 
     model.summary()
-    
-    if generate_dataset: _generate_datasets()
+
+    logging.info("TensorFlow version: %s", tf.__version__)
+    logging.info("GPUs available: %s", tf.config.list_physical_devices("GPU"))
+    logging.info("Train images: %s", QUANT_OF_TRAIN_IMGS)
+    logging.info("Test images: %s", QUANT_OF_TEST_IMGS)
+    logging.info("Projections: %s", PROJECTIONS)
+
+    if generate_dataset:
+        _generate_datasets()
 
     x_train, y_train, x_test, y_test = _get_dataset()
+
     _compile(model)
-    _fit(model, x_train, y_train)
+
+    start = time.time()
+
+    _fit(model, x_train, y_train, epochs=150, batch_size=4, validation_split=0.2)
+
+    end = time.time()
+
+    logging.info("Training time: %.2f seconds", end - start)
+
     _evaluate(model, x_test, y_test)
-    _predict(model, x_test[0], y_test[0])
+
+    _predict(model, x_test, y_test)
+
 
 def _generate_datasets() -> None:
-    print("Generating TRAIN dataset...")
+    print("Generating TRAIN dataset...", QUANT_OF_TRAIN_IMGS)
+
     os.makedirs(X_TRAIN_PATH, exist_ok=True)
     os.makedirs(Y_TRAIN_PATH, exist_ok=True)
-    Dataset.generate_custom_data_set(QUANT_OF_TRAIN_IMGS, X_TRAIN_PATH, Y_TRAIN_PATH, PROJECTIONS)
 
-    print("Generating TEST dataset...")
+    Dataset.generate_custom_data_set(
+        QUANT_OF_TRAIN_IMGS,
+        X_TRAIN_PATH,
+        Y_TRAIN_PATH,
+        PROJECTIONS
+    )
+
+    print("Generating TEST dataset...", QUANT_OF_TEST_IMGS)
+
     os.makedirs(X_TEST_PATH, exist_ok=True)
     os.makedirs(Y_TEST_PATH, exist_ok=True)
-    Dataset.generate_custom_data_set(QUANT_OF_TEST_IMGS, X_TEST_PATH, Y_TEST_PATH, PROJECTIONS)
+
+    Dataset.generate_custom_data_set(
+        QUANT_OF_TEST_IMGS,
+        X_TEST_PATH,
+        Y_TEST_PATH,
+        PROJECTIONS
+    )
+
 
 def _get_dataset() -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+
     print("Getting dataset...")
 
-    x_train, y_train = Dataset.load_full_dataset_X_n_Y(X_TRAIN_PATH, Y_TRAIN_PATH, PROJECTIONS)
-    x_test, y_test = Dataset.load_full_dataset_X_n_Y(X_TEST_PATH, Y_TEST_PATH, PROJECTIONS)
+    x_train, y_train = Dataset.load_full_dataset_X_n_Y(
+        X_TRAIN_PATH,
+        Y_TRAIN_PATH,
+        PROJECTIONS
+    )
+
+    x_test, y_test = Dataset.load_full_dataset_X_n_Y(
+        X_TEST_PATH,
+        Y_TEST_PATH,
+        PROJECTIONS
+    )
+
+    print("TRAIN dataset size:", len(x_train))
+    print("TEST dataset size:", len(x_test))
 
     return x_train, y_train, x_test, y_test
 
-def _compile(model : models.Model) -> None:
+
+def _compile(model: models.Model) -> None:
+
     print("Compiling...")
 
     model.compile(
-        optimizer = "adam",
-        loss = "mse",
-        metrics = [keras.metrics.MeanSquaredError(), keras.metrics.MeanAbsoluteError(), psnr_metric]
+        optimizer="adam",
+        loss="mse",
+        metrics=[
+            keras.metrics.MeanSquaredError(),
+            keras.metrics.MeanAbsoluteError(),
+            psnr_metric
+        ]
     )
 
+
 def _get_checkpoints() -> list:
-    print("Epoch checkpoint...")
+
+    print("Creating checkpoints...")
 
     os.makedirs("checkpoints", exist_ok=True)
 
-    checkpoint_epoch = ModelCheckpoint( ## Each epoch will be saved
+    checkpoint_epoch = ModelCheckpoint(
         "checkpoints/checkpoint_epoch_{epoch:03d}.keras",
         save_freq="epoch"
     )
 
-    print("Best checkpoint...")
-
-    checkpoint_best = ModelCheckpoint( ## Save the best model
+    checkpoint_best = ModelCheckpoint(
         filepath="checkpoints/best_model.keras",
         monitor="val_loss",
         save_best_only=True,
-        mode="min",                # "min" for loss, "max" for SSIM
+        mode="min",
         verbose=1
     )
 
-    print("Early stopping...")
-
-    early_stop = EarlyStopping( ## To avoid overfitting
+    early_stop = EarlyStopping(
         monitor="val_loss",
-        patience=5,          # wait 5 epochs to improve
+        patience=5,
         restore_best_weights=True
     )
 
-    print("ReduceLROnPlateau...")
-
-    reduce_lr = ReduceLROnPlateau( ## Reduces the learning rate when the model stops improving
+    reduce_lr = ReduceLROnPlateau(
         monitor="val_loss",
         factor=0.5,
         patience=3,
@@ -101,15 +158,28 @@ def _get_checkpoints() -> list:
 
     return [checkpoint_epoch, checkpoint_best, early_stop, reduce_lr]
 
-def _fit(model : models.Model, x_train : np.ndarray, y_train : np.ndarray) -> None:
-    print("Fitting...")
+
+def _fit(
+    model: models.Model,
+    x_train: np.ndarray,
+    y_train: np.ndarray,
+    epochs: int,
+    batch_size: int,
+    validation_split: float
+) -> None:
+
+    print("Fitting model...")
+
+    print("Epochs:", epochs)
+    print("Batch size:", batch_size)
+    print("Validation split:", validation_split)
 
     history = model.fit(
         x_train,
         y_train,
-        epochs=2,
-        batch_size=4,
-        validation_split=0.2,
+        epochs=epochs,
+        batch_size=batch_size,
+        validation_split=validation_split,
         callbacks=_get_checkpoints()
     )
 
@@ -119,42 +189,69 @@ def _fit(model : models.Model, x_train : np.ndarray, y_train : np.ndarray) -> No
     plt.plot(history.history["val_loss"])
     plt.legend(["train", "val"])
     plt.savefig("imgs/training_curve.png", dpi=300)
+
     plt.show()
 
-def _evaluate(model : models.Model, x_test : np.ndarray, y_test : np.ndarray) -> None:
-    print("Evaluating...")
+    os.makedirs("logs", exist_ok=True)
+
+    with open("logs/training_history.txt", "w") as f:
+        epochs = len(history.history["loss"])   
+
+        for epoch in range(epochs):
+            f.write(f"Epoch {epoch+1}\n")   
+
+            for metric in history.history:
+                value = history.history[metric][epoch]
+                f.write(f"{metric}: {value}\n") 
+
+            f.write("\n")
+
+
+def _evaluate(model: models.Model, x_test: np.ndarray, y_test: np.ndarray) -> None:
+
+    print("Evaluating model...")
 
     results = model.evaluate(x_test, y_test, verbose=1)
 
-    print("Results...")
+    print("Results:")
 
     for name, value in zip(model.metrics_names, results):
         print(f"{name}: {value}")
 
-def _predict(model : models.Model, x_test : Image, y_test : Image) -> None:
+
+def _predict(model: models.Model, x_test: np.ndarray, y_test: np.ndarray) -> None:
+
     print("Predicting...")
 
     pred = model.predict(x_test)
 
-    plt.figure(figsize=(12,4))
+    for i in range(len(x_test)):
 
-    plt.subplot(1,3,1)
-    plt.imshow(x_test)
-    plt.title("Input")
+        plt.figure(figsize=(12, 4))
 
-    plt.subplot(1,3,2)
-    plt.imshow(y_test)
-    plt.title("Ground Truth")
+        plt.subplot(1, 3, 1)
+        plt.imshow(x_test[i])
+        plt.title("Input")
 
-    plt.subplot(1,3,3)
-    plt.imshow(pred[0])
-    plt.title("Prediction")
+        plt.subplot(1, 3, 2)
+        plt.imshow(y_test[i])
+        plt.title("Ground Truth")
 
-    plt.savefig("imgs/model_prediction.png", dpi=300)
+        plt.subplot(1, 3, 3)
+        plt.imshow(pred[i])
+        plt.title("Prediction")
 
-    plt.show()
+        plt.savefig(f"imgs/model_prediction_{i}.png", dpi=300)
 
+        plt.show()
+
+    print("Predicted", len(x_test), "images from the TEST dataset.")
 
 
 if __name__ == "__main__":
+
+    Logger()
+
+    logging.info("Starting training...")
+
     _train(generate_dataset=False)

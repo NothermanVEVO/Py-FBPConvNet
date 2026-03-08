@@ -13,13 +13,14 @@ import logging
 import time
 
 from Utils.Loggers import Logger
+from Utils.MetricLogger import MetricLogger
 
 
-QUANT_OF_TRAIN_IMGS = 4
+QUANT_OF_TRAIN_IMGS = 150
 X_TRAIN_PATH = "dataset/x_train"
 Y_TRAIN_PATH = "dataset/y_train"
 
-QUANT_OF_TEST_IMGS = 2
+QUANT_OF_TEST_IMGS = 30
 X_TEST_PATH = "dataset/x_test"
 Y_TEST_PATH = "dataset/y_test"
 
@@ -156,7 +157,7 @@ def _get_checkpoints() -> list:
         verbose=1
     )
 
-    return [checkpoint_epoch, checkpoint_best, early_stop, reduce_lr]
+    return [checkpoint_epoch, checkpoint_best, early_stop, reduce_lr, MetricLogger()]
 
 
 def _fit(
@@ -254,4 +255,4 @@ if __name__ == "__main__":
 
     logging.info("Starting training...")
 
-    _train(generate_dataset=False)
+    _train(generate_dataset=True)

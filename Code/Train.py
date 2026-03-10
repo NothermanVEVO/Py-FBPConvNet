@@ -1,5 +1,6 @@
 import FBPConvNet.FBPConvNet as FBPConvNet
-from Codes.Metric.Metrics import psnr_metric
+from GitCodes.Metric.Metrics import psnr_metric
+# from Codes.Metric.Metrics import psnr_metric
 import phantoms.Dataset as Dataset
 import os
 from tensorflow import keras
@@ -255,4 +256,4 @@ if __name__ == "__main__":
 
     logging.info("Starting training...")
 
-    _train(generate_dataset=False)
+    _train(generate_dataset=True)

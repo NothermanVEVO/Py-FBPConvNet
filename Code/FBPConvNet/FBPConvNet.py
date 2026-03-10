@@ -64,12 +64,11 @@ def fbpconvnet_model(input_shape = (512, 512, 1)) -> models.Model:
 
     x = expansive_path(x, skip1, skip2, skip3, skip4)
 
-    output = layers.Conv2D(1, 1, activation = 'sigmoid')(x)
+    output = layers.Conv2D(1, 1)(x)
 
     output = layers.Add()([output, input]) ## FINAL SKIP CONNECTION
 
-    # output = layers.Activation("sigmoid")(output) ## THIS ONE
-    # output = layers.Lambda(lambda x: tf.clip_by_value(x, 0.0, 1.0))(output) ## OR THIS ONE
+    output = layers.Activation("sigmoid")(output)
 
     model = models.Model(input, output, name = 'FBPConvNet')
     return model

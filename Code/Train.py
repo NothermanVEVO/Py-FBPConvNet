@@ -1,5 +1,5 @@
 import FBPConvNet.FBPConvNet as FBPConvNet
-from GitCodes.Metric.Metrics import psnr_metric
+from Metric.Metrics import psnr_metric
 # from Codes.Metric.Metrics import psnr_metric
 import phantoms.Dataset as Dataset
 import os
@@ -51,7 +51,7 @@ def _train(generate_dataset: bool = False) -> None:
 
     start = time.time()
 
-    _fit(model, x_train, y_train, epochs=100, batch_size=8, validation_split=0.166)
+    _fit(model, x_train, y_train, epochs=100, batch_size=2, validation_split=0.166)
 
     end = time.time()
 
@@ -131,10 +131,12 @@ def _get_checkpoints() -> list:
 
     os.makedirs("checkpoints", exist_ok=True)
 
-    checkpoint_epoch = ModelCheckpoint(
-        "checkpoints/checkpoint_epoch_{epoch:03d}.keras",
-        save_freq="epoch"
-    )
+    ## REMOVED FOR NOW...
+    #
+    # checkpoint_epoch = ModelCheckpoint(
+    #     "checkpoints/checkpoint_epoch_{epoch:03d}.keras",
+    #     save_freq="epoch"
+    # )
 
     checkpoint_best = ModelCheckpoint(
         filepath="checkpoints/best_model.keras",
@@ -158,7 +160,7 @@ def _get_checkpoints() -> list:
         verbose=1
     )
 
-    return [checkpoint_epoch, checkpoint_best, early_stop, reduce_lr, MetricLogger()]
+    return [checkpoint_best, early_stop, reduce_lr, MetricLogger()]
 
 
 def _fit(
@@ -256,4 +258,4 @@ if __name__ == "__main__":
 
     logging.info("Starting training...")
 
-    _train(generate_dataset=True)
+    _train(generate_dataset=False)

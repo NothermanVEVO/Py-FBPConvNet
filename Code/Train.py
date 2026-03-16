@@ -17,11 +17,11 @@ from Utils.Loggers import Logger
 from Utils.MetricLogger import MetricLogger
 
 
-QUANT_OF_TRAIN_IMGS = 150
+QUANT_OF_TRAIN_IMGS = 1200
 X_TRAIN_PATH = "dataset/x_train"
 Y_TRAIN_PATH = "dataset/y_train"
 
-QUANT_OF_TEST_IMGS = 30
+QUANT_OF_TEST_IMGS = 50
 X_TEST_PATH = "dataset/x_test"
 Y_TEST_PATH = "dataset/y_test"
 
@@ -51,7 +51,7 @@ def _train(generate_dataset: bool = False) -> None:
 
     start = time.time()
 
-    _fit(model, x_train, y_train, epochs=1, batch_size=4, validation_split=0.2)
+    _fit(model, x_train, y_train, epochs=100, batch_size=8, validation_split=0.166)
 
     end = time.time()
 

@@ -12,12 +12,13 @@ from PIL import Image
 import tensorflow as tf
 import logging
 import time
+from keras.optimizers import Adam
 
 from Utils.Loggers import Logger
 from Utils.MetricLogger import MetricLogger
 
 
-QUANT_OF_TRAIN_IMGS = 1200
+QUANT_OF_TRAIN_IMGS = 1250
 X_TRAIN_PATH = "dataset/x_train"
 Y_TRAIN_PATH = "dataset/y_train"
 
@@ -51,7 +52,7 @@ def _train(generate_dataset: bool = False) -> None:
 
     start = time.time()
 
-    _fit(model, x_train, y_train, epochs=100, batch_size=2, validation_split=0.166)
+    _fit(model, x_train, y_train, epochs=100, batch_size=8, validation_split=0.2)
 
     end = time.time()
 
@@ -115,7 +116,7 @@ def _compile(model: models.Model) -> None:
     print("Compiling...")
 
     model.compile(
-        optimizer="adam",
+        optimizer=Adam(learning_rate=1e-4),
         loss="mse",
         metrics=[
             keras.metrics.MeanSquaredError(),

@@ -1,16 +1,19 @@
 from tensorflow import keras
-from keras import layers, models
+from keras import layers, models, regularizers
 
-def conv(input, filters):
-    x = layers.Conv2D(filters, kernel_size = 3, padding = 'same')(input)
+def conv(input, filters, use_kernel_regularizer = False):
+    if use_kernel_regularizer:
+        x = layers.Conv2D(filters, kernel_size = 3, padding = 'same', kernel_regularizer=regularizers.l2(1e-4))(input)
+    else:
+        x = layers.Conv2D(filters, kernel_size = 3, padding = 'same')(input)
     x = layers.BatchNormalization()(x)
     x = layers.Activation('relu')(x)
     
     return x
 
-def conv_block(input, filters):
-    x = conv(input, filters)
-    x = conv(x, filters)
+def conv_block(input, filters, use_kernel_regularizer = False):
+    x = conv(input, filters, use_kernel_regularizer)
+    x = conv(x, filters, use_kernel_regularizer)
 
     return x
 
@@ -26,7 +29,7 @@ def up_block(input, skip, filters):
     x = layers.Activation('relu')(x)
 
     ## Skip Connection
-    x = layers.Concatenate()([x, skip]) ## INVERTER AQUI A ORDEM?
+    x = layers.Concatenate()([x, skip])
 
     x = conv_block(x, filters)
 
@@ -41,7 +44,8 @@ def contracting_path(input):
     return down4, skip1, skip2, skip3, skip4
 
 def bottleneck(input):
-    x = conv_block(input, 1024)
+    x = conv_block(input, 1024, True)
+    x = layers.SpatialDropout2D(0.3)(x)
 
     return x
 

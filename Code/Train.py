@@ -12,6 +12,7 @@ from PIL import Image
 import tensorflow as tf
 import logging
 import time
+from keras.optimizers import Adam
 
 from Utils.Loggers import Logger
 from Utils.MetricLogger import MetricLogger
@@ -115,7 +116,7 @@ def _compile(model: models.Model) -> None:
     print("Compiling...")
 
     model.compile(
-        optimizer="adam",
+        optimizer=Adam(learning_rate=1e-4),
         loss="mse",
         metrics=[
             keras.metrics.MeanSquaredError(),

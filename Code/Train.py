@@ -149,14 +149,14 @@ def _get_checkpoints() -> list:
 
     early_stop = EarlyStopping(
         monitor="val_loss",
-        patience=5,
+        patience=7,
         restore_best_weights=True
     )
 
     reduce_lr = ReduceLROnPlateau(
         monitor="val_loss",
         factor=0.5,
-        patience=3,
+        patience=4,
         min_lr=1e-6,
         verbose=1
     )

@@ -49,7 +49,7 @@ LEARNING_RATE = 1e-4
 # PATHS
 # ============================================================
 
-MAIN_PATH = "/content/drive/MyDrive/NEW_FBPCONVNET/Dataset"
+MAIN_PATH = "/content/drive/MyDrive/NEW_FBPCONVNET"
 DATASET_PATH = "/content"
 
 RESULTS_PATH = os.path.join(

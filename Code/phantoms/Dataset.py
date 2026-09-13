@@ -1,3 +1,4 @@
+from matplotlib import image
 import numpy as np
 from PIL import Image
 import random
@@ -57,6 +58,39 @@ def generate_custom_data_set(quant_of_phantoms : int, x_path : str, y_path, proj
             out_path = os.path.join(x_path, str(n_proj), img_name)
             imsave(out_path, reconstruction_uint8)
 
+def generate_ground_truth_dataset(quant_of_images : int, path : str) -> None:
+    for i in range(quant_of_images):
+        print(i)
+    
+        phantom = generate_random_phantom(size=512, num_ellipses=random.randrange(2, 14), seed=None)
+    
+        img_uint8 = ((phantom - phantom.min()) /
+                     (phantom.max() - phantom.min()) * 255).astype(np.uint8)
+    
+        Image.fromarray(img_uint8).save(path + "/" + str(i) + ".png")
+
+def generate_low_projections_dataset(ground_truth_path : str, output_path : str, quant_images : int, projection : int) -> None:
+    for i in range(quant_images):
+        print(i)
+        image = imread(os.path.join(ground_truth_path, f"{i}.png"))
+        if image.ndim == 3:
+            image = rgb2gray(image)
+        image = resize(image, (512, 512))
+
+        theta = np.linspace(0., 180., projection, endpoint=False)
+    
+        # Forward projection (Radon)
+        sinogram = radon(image, theta=theta, circle=False)
+    
+        # Reconstrução (Inverse Radon)
+        reconstruction = iradon(sinogram, theta=theta, circle=False)
+    
+        reconstruction = (reconstruction - reconstruction.min()) / (reconstruction.max() - reconstruction.min())
+    
+        reconstruction_uint8 = (reconstruction * 255).astype(np.uint8)
+    
+        out_path = os.path.join(output_path, f"{i}.png")
+        imsave(out_path, reconstruction_uint8)
 
 def load_dataset_X_n_Y(x_path : str, y_path : str) -> tuple[np.ndarray, np.ndarray]:
     X = []

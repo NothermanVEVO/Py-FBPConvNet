@@ -1,6 +1,5 @@
 import FBPConvNet.FBPConvNet as FBPConvNet
-from Metric.Metrics import psnr_metric
-# from Codes.Metric.Metrics import psnr_metric
+from Metric.Metrics import psnr_metric, ssim_metric
 import phantoms.Dataset as Dataset
 import os
 from tensorflow import keras
@@ -17,19 +16,17 @@ from keras.optimizers import Adam
 from Utils.Loggers import Logger
 from Utils.MetricLogger import MetricLogger
 
+PROJECTION = 15
 
-QUANT_OF_TRAIN_IMGS = 1250
-X_TRAIN_PATH = "dataset/x_train"
-Y_TRAIN_PATH = "dataset/y_train"
+QUANT_OF_TRAIN_IMGS = 2000
+X_TRAIN_PATH = "Dataset/" + str(PROJECTION) + "/Train"
+Y_TRAIN_PATH = "Dataset/GroundTruth/Train"
 
-QUANT_OF_TEST_IMGS = 50
-X_TEST_PATH = "dataset/x_test"
-Y_TEST_PATH = "dataset/y_test"
+QUANT_OF_TEST_IMGS = 500
+X_TEST_PATH = "Dataset/" + str(PROJECTION) + "/Test"
+Y_TEST_PATH = "Dataset/GroundTruth/Test"
 
-PROJECTIONS = [15]
-
-
-def _train(generate_dataset: bool = False) -> None:
+def _train() -> None:
 
     logging.info("Creating model...")
 
@@ -41,10 +38,7 @@ def _train(generate_dataset: bool = False) -> None:
     logging.info("GPUs available: %s", tf.config.list_physical_devices("GPU"))
     logging.info("Train images: %s", QUANT_OF_TRAIN_IMGS)
     logging.info("Test images: %s", QUANT_OF_TEST_IMGS)
-    logging.info("Projections: %s", PROJECTIONS)
-
-    if generate_dataset:
-        _generate_datasets()
+    logging.info("Projection: %s", PROJECTION)
 
     x_train, y_train, x_test, y_test = _get_dataset()
 
@@ -52,41 +46,13 @@ def _train(generate_dataset: bool = False) -> None:
 
     start = time.time()
 
-    _fit(model, x_train, y_train, epochs=100, batch_size=8, validation_split=0.2)
+    _fit(model, x_train, y_train, epochs=100, batch_size=16, validation_split=0.1)
 
     end = time.time()
 
     logging.info("Training time: %.2f seconds", end - start)
 
     _evaluate(model, x_test, y_test)
-
-    _predict(model, x_test, y_test)
-
-
-def _generate_datasets() -> None:
-    print("Generating TRAIN dataset...", QUANT_OF_TRAIN_IMGS)
-
-    os.makedirs(X_TRAIN_PATH, exist_ok=True)
-    os.makedirs(Y_TRAIN_PATH, exist_ok=True)
-
-    Dataset.generate_custom_data_set(
-        QUANT_OF_TRAIN_IMGS,
-        X_TRAIN_PATH,
-        Y_TRAIN_PATH,
-        PROJECTIONS
-    )
-
-    print("Generating TEST dataset...", QUANT_OF_TEST_IMGS)
-
-    os.makedirs(X_TEST_PATH, exist_ok=True)
-    os.makedirs(Y_TEST_PATH, exist_ok=True)
-
-    Dataset.generate_custom_data_set(
-        QUANT_OF_TEST_IMGS,
-        X_TEST_PATH,
-        Y_TEST_PATH,
-        PROJECTIONS
-    )
 
 
 def _get_dataset() -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
@@ -96,13 +62,13 @@ def _get_dataset() -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     x_train, y_train = Dataset.load_full_dataset_X_n_Y(
         X_TRAIN_PATH,
         Y_TRAIN_PATH,
-        PROJECTIONS
+        PROJECTION
     )
 
     x_test, y_test = Dataset.load_full_dataset_X_n_Y(
         X_TEST_PATH,
         Y_TEST_PATH,
-        PROJECTIONS
+        PROJECTION
     )
 
     print("TRAIN dataset size:", len(x_train))
@@ -119,9 +85,9 @@ def _compile(model: models.Model) -> None:
         optimizer=Adam(learning_rate=1e-4),
         loss="mse",
         metrics=[
-            keras.metrics.MeanSquaredError(),
-            keras.metrics.MeanAbsoluteError(),
-            psnr_metric
+            keras.metrics.MeanSquaredError(name="mse"),
+            psnr_metric,
+            ssim_metric
         ]
     )
 
@@ -224,39 +190,10 @@ def _evaluate(model: models.Model, x_test: np.ndarray, y_test: np.ndarray) -> No
         print(f"{name}: {value}")
 
 
-def _predict(model: models.Model, x_test: np.ndarray, y_test: np.ndarray) -> None:
-
-    print("Predicting...")
-
-    pred = model.predict(x_test)
-
-    for i in range(len(x_test)):
-
-        plt.figure(figsize=(12, 4))
-
-        plt.subplot(1, 3, 1)
-        plt.imshow(x_test[i].squeeze(), cmap="gray", vmin=0, vmax=1)
-        plt.title("Input")
-
-        plt.subplot(1, 3, 2)
-        plt.imshow(y_test[i].squeeze(), cmap="gray", vmin=0, vmax=1)
-        plt.title("Ground Truth")
-
-        plt.subplot(1, 3, 3)
-        plt.imshow(pred[i].squeeze(), cmap="gray", vmin=0, vmax=1)
-        plt.title("Prediction")
-
-        plt.savefig(f"imgs/model_prediction_{i}.png", dpi=300)
-
-        plt.show()
-
-    print("Predicted", len(x_test), "images from the TEST dataset.")
-
-
 if __name__ == "__main__":
 
     Logger()
 
     logging.info("Starting training...")
 
-    _train(generate_dataset=False)
+    _train()

@@ -49,7 +49,8 @@ LEARNING_RATE = 1e-4
 # PATHS
 # ============================================================
 
-MAIN_PATH = "/content/drive/MyDrive/NEW_FBPCONVNET"
+MAIN_PATH = "/content/drive/MyDrive/NEW_FBPCONVNET/Dataset"
+DATASET_PATH = "/content"
 
 RESULTS_PATH = os.path.join(
     MAIN_PATH,
@@ -77,28 +78,28 @@ LOG_PATH = os.path.join(
 # ============================================================
 
 X_TRAIN_PATH = os.path.join(
-    MAIN_PATH,
+    DATASET_PATH,
     "Dataset",
     str(PROJECTION),
     "Train"
 )
 
 Y_TRAIN_PATH = os.path.join(
-    MAIN_PATH,
+    DATASET_PATH,
     "Dataset",
     "GroundTruth",
     "Train"
 )
 
 X_TEST_PATH = os.path.join(
-    MAIN_PATH,
+    DATASET_PATH,
     "Dataset",
     str(PROJECTION),
     "Test"
 )
 
 Y_TEST_PATH = os.path.join(
-    MAIN_PATH,
+    DATASET_PATH,
     "Dataset",
     "GroundTruth",
     "Test"

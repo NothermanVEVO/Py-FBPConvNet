@@ -92,7 +92,11 @@ def generate_low_projections_dataset(ground_truth_path : str, output_path : str,
         out_path = os.path.join(output_path, f"{i}.png")
         imsave(out_path, reconstruction_uint8)
 
-def load_dataset_X_n_Y(x_path : str, y_path : str) -> tuple[np.ndarray, np.ndarray]:
+def load_dataset_X_n_Y(
+    x_path: str,
+    y_path: str
+) -> tuple[np.ndarray, np.ndarray]:
+
     X = []
     Y = []
 
@@ -100,8 +104,16 @@ def load_dataset_X_n_Y(x_path : str, y_path : str) -> tuple[np.ndarray, np.ndarr
     y_files = sorted(os.listdir(y_path))
 
     for x_file, y_file in zip(x_files, y_files):
-        x_img = load_img(os.path.join(x_path, x_file), color_mode="grayscale")
-        y_img = load_img(os.path.join(y_path, y_file), color_mode="grayscale")
+
+        x_img = load_img(
+            os.path.join(x_path, x_file),
+            color_mode="grayscale"
+        )
+
+        y_img = load_img(
+            os.path.join(y_path, y_file),
+            color_mode="grayscale"
+        )
 
         x_img = img_to_array(x_img) / 255.0
         y_img = img_to_array(y_img) / 255.0
@@ -111,16 +123,29 @@ def load_dataset_X_n_Y(x_path : str, y_path : str) -> tuple[np.ndarray, np.ndarr
 
     return np.array(X), np.array(Y)
 
-def load_full_dataset_X_n_Y(x_path : str, y_path : str, projections : list[int]) -> tuple[np.ndarray, np.ndarray]:
+def load_full_dataset_X_n_Y(
+    x_path: str,
+    y_path: str,
+    projections: list[int]
+) -> tuple[np.ndarray, np.ndarray]:
+
     X_total = []
     Y_total = []
 
     for p in projections:
-        x, y = load_dataset_X_n_Y(x_path + f"/{p}", y_path)
+
+        x, y = load_dataset_X_n_Y(
+            x_path,
+            y_path
+        )
+
         X_total.append(x)
         Y_total.append(y)
 
-    return np.concatenate(X_total, axis=0), np.concatenate(Y_total, axis=0)
+    return (
+        np.concatenate(X_total, axis=0),
+        np.concatenate(Y_total, axis=0)
+    )
 
 def generate_random_phantom(size : int = 256, num_ellipses : int = 10, seed : int | None = None) -> np.ndarray:
     """

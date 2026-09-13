@@ -305,6 +305,26 @@ def _train() -> None:
     _print_environment()
 
     logging.info(
+      "X Train path: %s",
+      X_TRAIN_PATH
+    )
+
+    logging.info(
+      "Y Train path: %s",
+      Y_TRAIN_PATH
+    )
+
+    logging.info(
+      "X Test path: %s",
+      X_TEST_PATH
+    )
+
+    logging.info(
+      "Y Test path: %s",
+      Y_TEST_PATH
+    )
+
+    logging.info(
         "Train images: %s",
         QUANT_OF_TRAIN_IMGS
     )
@@ -477,7 +497,7 @@ def _get_dataset():
         Dataset.load_full_dataset_X_n_Y(
             X_TRAIN_PATH,
             Y_TRAIN_PATH,
-            PROJECTION
+            [PROJECTION]
         )
     )
 
@@ -485,7 +505,7 @@ def _get_dataset():
         Dataset.load_full_dataset_X_n_Y(
             X_TEST_PATH,
             Y_TEST_PATH,
-            PROJECTION
+            [PROJECTION]
         )
     )
 
